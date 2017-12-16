@@ -11,8 +11,8 @@ class Map extends React.Component {
         viewport: {
             width: window.innerWidth,
             height: window.innerHeight,
-            latitude: 0,
-            longitude: 0,
+            latitude: 50,
+            longitude: 8,
             zoom: 1
         },
         crashes: {}

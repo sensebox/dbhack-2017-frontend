@@ -11,6 +11,8 @@ class TicketEdit extends React.Component {
         super(props)
         this.handleInputChange = this.handleInputChange.bind(this)
         this.onSubmit = this.onSubmit.bind(this)
+        this.getLocationData = this.getLocationData.bind(this)
+
         this.state = {}
     }
 
@@ -18,10 +20,38 @@ class TicketEdit extends React.Component {
         fetch('https://boiling-taiga-24096.herokuapp.com/api/tickets').then(response => {
             return response.json()
         }).then(data => {
+            var ticket = data[Math.floor(Math.random() * (data.length))]
+            console.log(ticket)
             this.setState({
-                ticket: data[Math.floor(Math.random() * (data.length))]
+                ticket: ticket
             })
-            console.log(this.state)
+            this.getLocationData(this.state.ticket.destination_id, "destination")
+            this.getLocationData(this.state.ticket.point_of_departure_id, "start")
+        })
+
+        
+    }
+
+    getLocationData(locationID, type) {
+        console.log("getting location for id " + locationID)
+        if(locationID == 0 || locationID == null) {
+            this.setState({
+                [type]: {
+                    id: 18,
+                    name: "Le Trage, Ailloncourt, Haute-Saône, Bourgogne-Franche-Comté",
+                    latitude: "47.76932",
+                    longitude: "6.39529",
+                    created_at: "2017-12-16 13:55:34",
+                    updated_at: "2017-12-16 13:55:34"
+                }
+            })
+            return
+        }
+        fetch(`https://boiling-taiga-24096.herokuapp.com/api/locations/${locationID}`).then(response => response.json()
+        ).then(data => {
+            this.setState({
+                [type]: data
+            })
         })
     }
 
@@ -57,14 +87,15 @@ class TicketEdit extends React.Component {
       }
 
     render() {
-        if (this.state.ticket) {
+        if (this.state.ticket && this.state.start && this.state.destination) {
+            console.log(this.state)
             return (
                 <div>
                     <section className="section">
                         <div className="container">
                             <div className="columns">
                                 <div className="column is-one-third">
-                                    <img src={require('./img/template.jpg')} alt="Ticket" />
+                                    <img src={`https://boiling-taiga-24096.herokuapp.com/img/tickets/${this.state.ticket.image}`} alt="Ticket" />
                                 </div>
                                 <div className="column is-half">
                                     <div className="card-content">
@@ -73,14 +104,14 @@ class TicketEdit extends React.Component {
                                                 <div className="field">
                                                     <label className="label">Von</label>
                                                     <div className="control">
-                                                        <input className="input" type="text" name="start" onChange={this.handleInputChange} />
+                                                        <input className="input" type="text" value={this.state.start.name} name="start" onChange={this.handleInputChange} />
                                                     </div>
                                                 </div>
 
                                                 <div className="field">
                                                     <label className="label">Nach</label>
                                                     <div className="control">
-                                                        <input className="input" type="text" name="destination" onChange={this.handleInputChange} />
+                                                        <input className="input" type="text" value={this.state.destination.name} name="destination" onChange={this.handleInputChange} />
                                                     </div>
                                                 </div>
                                                 <div className="field">
@@ -91,8 +122,8 @@ class TicketEdit extends React.Component {
                                                 </div>
                                                 <label className="label">Streckenübersicht</label>
                                                 <Map
-                                                    start={[8.68, 50.11]}
-                                                    destination={[8.84, 49.89]}
+                                                    start={[this.state.start.longitude, this.state.start.latitude]}
+                                                    destination={[this.state.destination.longitude, this.state.destination.latitude]}
                                                 />
                                                 <br />
                                                 <hr />
@@ -116,9 +147,9 @@ class TicketEdit extends React.Component {
                                     <ul className="ocr-tag-list">
                                         {JSON.parse(this.state.ticket.ocrText).map((word, index) => {
                                             if(word.length > 2) {
-                                            return <li key={index}>
-                                                <span className="tag is-medium">{word}</span>
-                                            </li>
+                                                return <li key={index}>
+                                                    <span className="tag is-medium">{word}</span>
+                                                </li>
                                             }
                                         })}
                                     </ul>
